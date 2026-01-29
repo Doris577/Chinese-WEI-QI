@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>围棋教学游戏 - 和小狗学围棋</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5e6d3 0%, #d4a574 100%);
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .game-container {
+            max-width: 1400px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #8B4513;
+            font-size: 1.1rem;
+        }
+
+        /* 模式选择 */
+        .mode-selector {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .mode-btn {
+            padding: 1rem 2rem;
+            border: 3px solid #8B4513;
+            border-radius: 15px;
+            background: white;
+            color: #8B4513;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.3);
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+            color: white;
+        }
+
+        /* 难度选择 */
+        .difficulty-selector {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .difficulty-btn {
+            padding: 0.6rem 1.5rem;
+            border: 2px solid #D2691E;
+            border-radius: 10px;
+            background: white;
+            color: #D2691E;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .difficulty-btn::after {
+            content: attr(data-board);
+            display: block;
+            font-size: 0.7rem;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        .difficulty-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(210, 105, 30, 0.3);
+        }
+
+        .difficulty-btn.active {
+            background: linear-gradient(135deg, #D2691E 0%, #CD853F 100%);
+            color: white;
+        }
+
+        .difficulty-btn.active::after {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* 游戏主体 */
+        .game-wrapper {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* 棋盘容器 */
+        .board-container {
+            background: #DEB887;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        canvas {
+            display: block;
+            cursor: crosshair;
+            border-radius: 5px;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            min-width: 280px;
+        }
+
+        /* 小狗角色 */
+        .dog-character {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .dog-avatar {
+            font-size: 5rem;
+            animation: dogBounce 2s ease-in-out infinite;
+        }
+
+        @keyframes dogBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .dog-speech {
+            background: #FFF8DC;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            position: relative;
+            border: 2px solid #8B4513;
+            min-height: 80px;
+        }
+
+        .dog-speech::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 10px solid #8B4513;
+        }
+
+        /* 游戏信息 */
+        .game-info {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 1.1rem;
+        }
+
+        .info-item label {
+            font-weight: 600;
+            color: #8B4513;
+        }
+
+        /* 控制按钮 */
+        .controls {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.4);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+        }
+
+        /* 棋谱库 */
+        .pattern-library {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .pattern-item {
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pattern-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .pattern-item.active {
+            background: #FFF8DC;
+            border: 2px solid #8B4513;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .game-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .mode-selector, .difficulty-selector {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <header>
+            <h1>🐕 和小狗学围棋</h1>
+            <p class="subtitle">从零基础到高级对弈，循序渐进学围棋</p>
+        </header>
+
+        <!-- 模式选择 -->
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="learning">📚 棋形学习</button>
+            <button class="mode-btn" data-mode="play">⚔️ 对弈模式</button>
+        </div>
+
+        <!-- 难度选择 -->
+        <div class="difficulty-selector" id="difficulty-selector" style="display: none;">
+            <button class="difficulty-btn active" data-difficulty="beginner" data-board="9x9棋盘">🌱 初级</button>
+            <button class="difficulty-btn" data-difficulty="intermediate" data-board="19x19棋盘">🌿 中级</button>
+            <button class="difficulty-btn" data-difficulty="advanced" data-board="19x19棋盘">🌳 高级</button>
+        </div>
+
+        <div class="game-wrapper">
+            <!-- 棋盘 -->
+            <div class="board-container">
+                <canvas id="goboard" width="570" height="570"></canvas>
+            </div>
+
+            <!-- 侧边栏 -->
+            <div class="sidebar">
+                <!-- 小狗角色 -->
+                <div class="dog-character">
+                    <div class="dog-avatar">🐕</div>
+                    <div class="dog-speech">
+                        <p id="dog-message">欢迎来到围棋世界！我是你的小助手，让我们一起学习围棋吧！</p>
+                    </div>
+                </div>
+
+                <!-- 游戏信息 -->
+                <div class="game-info">
+                    <h3 style="margin-bottom: 1rem; color: #8B4513;">游戏信息</h3>
+                    <div class="info-item">
+                        <label>当前模式：</label>
+                        <span id="current-mode">棋形学习</span>
+                    </div>
+                    <div class="info-item">
+                        <label>棋盘大小：</label>
+                        <span id="board-size">9x9</span>
+                    </div>
+                    <div class="info-item">
+                        <label>当前手数：</label>
+                        <span id="move-count">0</span>
+                    </div>
+                    <div class="info-item">
+                        <label>轮到：</label>
+                        <span id="current-player">黑方</span>
+                    </div>
+                    <div class="info-item" id="captured-info">
+                        <label>提子数：</label>
+                        <span id="captured-count">黑0 白0</span>
+                    </div>
+                </div>
+
+                <!-- 控制按钮 -->
+                <div class="controls">
+                    <button class="btn" id="hint-btn">💡 提示落子</button>
+                    <button class="btn btn-secondary" id="undo-btn">↩️ 悔棋</button>
+                    <button class="btn btn-secondary" id="pass-btn">⏭️ 跳过</button>
+                    <button class="btn btn-success" id="new-game-btn">🎮 新游戏</button>
+                </div>
+
+                <!-- 棋谱库（学习模式） -->
+                <div class="pattern-library" id="pattern-library">
+                    <h3 style="margin-bottom: 1rem; color: #8B4513;">经典棋形</h3>
+                    <div class="pattern-item active" data-pattern="0">基础吃子</div>
+                    <div class="pattern-item" data-pattern="1">虎口形状</div>
+                    <div class="pattern-item" data-pattern="2">征子技巧</div>
+                    <div class="pattern-item" data-pattern="3">金角银边</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 经典棋形库
+        const PATTERNS = [
+            {
+                name: '基础吃子',
+                description: '学习如何围住对方的棋子，理解"气"的概念',
+                moves: [
+                    {x: 2, y: 2, color: 1},
+                    {x: 3, y: 2, color: 1},
+                    {x: 2, y: 3, color: 2},
+                    {x: 3, y: 3, color: 1},
+                ]
+            },
+            {
+                name: '虎口形状',
+                description: '这是围棋中最基础的防守形状',
+                moves: [
+                    {x: 3, y: 3, color: 1},
+                    {x: 4, y: 3, color: 1},
+                    {x: 3, y: 4, color: 1},
+                ]
+            },
+            {
+                name: '征子技巧',
+                description: '学习如何追赶对方的棋子',
+                moves: [
+                    {x: 4, y: 4, color: 2},
+                    {x: 3, y: 4, color: 1},
+                    {x: 4, y: 5, color: 1},
+                ]
+            },
+            {
+                name: '金角银边',
+                description: '围棋中角落的价值最高',
+                moves: [
+                    {x: 2, y: 2, color: 1},
+                    {x: 6, y: 6, color: 2},
+                    {x: 2, y: 6, color: 1},
+                ]
+            }
+        ];
+
+        // 游戏类
+        class GoGame {
+            constructor() {
+                this.canvas = document.getElementById('goboard');
+                this.ctx = this.canvas.getContext('2d');
+
+                // 游戏设置
+                this.boardSize = 9;
+                this.cellSize = 60;
+                this.stoneRadius = 25;
+                this.difficulty = 'beginner';
+                this.mode = 'learning';
+
+                // 游戏状态
+                this.board = this.createEmptyBoard();
+                this.history = [];
+                this.currentPlayer = 1; // 1=黑, 2=白
+                this.moveCount = 0;
+                this.capturedStones = {black: 0, white: 0};
+                this.lastMove = null;
+                this.aiThinking = false;
+
+                this.bindEvents();
+                this.updateCanvasSize();
+                this.drawBoard();
+                this.updateUI();
+            }
+
+            createEmptyBoard() {
+                return Array(this.boardSize).fill().map(() => Array(this.boardSize).fill(0));
+            }
+
+            updateCanvasSize() {
+                const padding = 60;
+                const size = (this.boardSize - 1) * this.cellSize + padding;
+                this.canvas.width = size;
+                this.canvas.height = size;
+
+                // 根据棋盘大小调整棋子大小
+                if (this.boardSize === 19) {
+                    this.cellSize = 30;
+                    this.stoneRadius = 13;
+                } else {
+                    this.cellSize = 60;
+                    this.stoneRadius = 25;
+                }
+
+                const newSize = (this.boardSize - 1) * this.cellSize + padding;
+                this.canvas.width = newSize;
+                this.canvas.height = newSize;
+            }
+
+            bindEvents() {
+                // 棋盘点击
+                this.canvas.addEventListener('click', (e) => this.handleClick(e));
+
+                // 模式切换
+                document.querySelectorAll('.mode-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.mode = e.target.dataset.mode;
+                        this.switchMode();
+                    });
+                });
+
+                // 难度切换
+                document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.difficulty = e.target.dataset.difficulty;
+                        this.switchDifficulty();
+                    });
+                });
+
+                // 按钮
+                document.getElementById('hint-btn').addEventListener('click', () => this.showHint());
+                document.getElementById('undo-btn').addEventListener('click', () => this.undo());
+                document.getElementById('pass-btn').addEventListener('click', () => this.pass());
+                document.getElementById('new-game-btn').addEventListener('click', () => this.newGame());
+
+                // 棋谱选择
+                document.querySelectorAll('.pattern-item').forEach((item, index) => {
+                    item.addEventListener('click', () => {
+                        document.querySelectorAll('.pattern-item').forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+                        this.loadPattern(index);
+                    });
+                });
+            }
+
+            handleClick(e) {
+                if (this.aiThinking) return;
+
+                const rect = this.canvas.getBoundingClientRect();
+                const padding = 30;
+                const x = Math.round((e.clientX - rect.left - padding) / this.cellSize);
+                const y = Math.round((e.clientY - rect.top - padding) / this.cellSize);
+
+                if (x >= 0 && x < this.boardSize && y >= 0 && y < this.boardSize) {
+                    this.makeMove(x, y);
+                }
+            }
+
+            makeMove(x, y) {
+                if (this.board[y][x] !== 0) {
+                    this.showDogMessage('这里已经有棋子了，换个位置试试！');
+                    return false;
+                }
+
+                // 保存历史
+                this.history.push({
+                    board: this.board.map(row => [...row]),
+                    player: this.currentPlayer,
+                    capturedStones: {...this.capturedStones}
+                });
+
+                // 放置棋子
+                this.board[y][x] = this.currentPlayer;
+                this.lastMove = {x, y};
+                this.moveCount++;
+
+                // 检查并提子
+                this.captureStones(x, y);
+
+                // 检查气口（学习模式）
+                if (this.mode === 'learning') {
+                    const liberties = this.countLiberties(x, y);
+                    this.showDogMessage(`这个棋子有 ${liberties} 口气！`);
+                }
+
+                // 切换玩家
+                this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+
+                this.drawBoard();
+                this.updateUI();
+
+                // AI下棋（对弈模式）
+                if (this.mode === 'play' && this.currentPlayer === 2) {
+                    setTimeout(() => this.aiMove(), 800);
+                }
+
+                return true;
+            }
+
+            captureStones(x, y) {
+                const opponent = this.currentPlayer === 1 ? 2 : 1;
+                const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+
+                // 检查周围对方棋子
+                for (let [dx, dy] of directions) {
+                    const nx = x + dx;
+                    const ny = y + dy;
+
+                    if (this.isValid(nx, ny) && this.board[ny][nx] === opponent) {
+                        if (this.countLiberties(nx, ny) === 0) {
+                            const captured = this.removeGroup(nx, ny);
+                            if (this.currentPlayer === 1) {
+                                this.capturedStones.black += captured;
+                            } else {
+                                this.capturedStones.white += captured;
+                            }
+                            this.showDogMessage(`太棒了！提掉了${captured}个子！`);
+                        }
+                    }
+                }
+            }
+
+            removeGroup(x, y) {
+                const color = this.board[y][x];
+                const visited = new Set();
+                const stack = [{x, y}];
+                let count = 0;
+
+                while (stack.length > 0) {
+                    const {x: cx, y: cy} = stack.pop();
+                    const key = `${cx},${cy}`;
+
+                    if (visited.has(key)) continue;
+                    visited.add(key);
+
+                    if (this.isValid(cx, cy) && this.board[cy][cx] === color) {
+                        this.board[cy][cx] = 0;
+                        count++;
+
+                        const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+                        for (let [dx, dy] of directions) {
+                            stack.push({x: cx + dx, y: cy + dy});
+                        }
+                    }
+                }
+
+                return count;
+            }
+
+            countLiberties(x, y) {
+                const color = this.board[y][x];
+                const visited = new Set();
+                const stack = [{x, y}];
+                const liberties = new Set();
+
+                while (stack.length > 0) {
+                    const {x: cx, y: cy} = stack.pop();
+                    const key = `${cx},${cy}`;
+
+                    if (visited.has(key)) continue;
+                    visited.add(key);
+
+                    if (!this.isValid(cx, cy)) continue;
+
+                    if (this.board[cy][cx] === 0) {
+                        liberties.add(key);
+                    } else if (this.board[cy][cx] === color) {
+                        const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+                        for (let [dx, dy] of directions) {
+                            stack.push({x: cx + dx, y: cy + dy});
+                        }
+                    }
+                }
+
+                return liberties.size;
+            }
+
+            isValid(x, y) {
+                return x >= 0 && x < this.boardSize && y >= 0 && y < this.boardSize;
+            }
+
+            aiMove() {
+                this.aiThinking = true;
+                this.showDogMessage('让我想想...');
+
+                // AI策略根据难度不同
+                let move = null;
+
+                if (this.difficulty === 'beginner') {
+                    // 初级：随机走
+                    move = this.getRandomMove();
+                } else if (this.difficulty === 'intermediate') {
+                    // 中级：优先角和边
+                    move = this.getStrategicMove();
+                } else {
+                    // 高级：更智能的策略
+                    move = this.getAdvancedMove();
+                }
+
+                if (move) {
+                    this.makeMove(move.x, move.y);
+                    const messages = [
+                        '汪！我下完了，轮到你啦！',
+                        '这步棋还不错吧？',
+                        '让我看看你怎么应对！',
+                        '加油，别被我吃掉哦！'
+                    ];
+                    this.showDogMessage(messages[Math.floor(Math.random() * messages.length)]);
+                } else {
+                    this.showDogMessage('没地方下了，游戏结束！');
+                }
+
+                this.aiThinking = false;
+            }
+
+            getRandomMove() {
+                const validMoves = [];
+                for (let y = 0; y < this.boardSize; y++) {
+                    for (let x = 0; x < this.boardSize; x++) {
+                        if (this.board[y][x] === 0) {
+                            validMoves.push({x, y});
+                        }
+                    }
+                }
+                return validMoves.length > 0 ?
+                    validMoves[Math.floor(Math.random() * validMoves.length)] : null;
+            }
+
+            getStrategicMove() {
+                // 优先级：角 > 边 > 中心
+                const corners = [];
+                const edges = [];
+                const center = [];
+
+                for (let y = 0; y < this.boardSize; y++) {
+                    for (let x = 0; x < this.boardSize; x++) {
+                        if (this.board[y][x] === 0) {
+                            if ((x < 3 || x >= this.boardSize - 3) &&
+                                (y < 3 || y >= this.boardSize - 3)) {
+                                corners.push({x, y});
+                            } else if (x < 4 || x >= this.boardSize - 4 ||
+                                     y < 4 || y >= this.boardSize - 4) {
+                                edges.push({x, y});
+                            } else {
+                                center.push({x, y});
+                            }
+                        }
+                    }
+                }
+
+                if (corners.length > 0) {
+                    return corners[Math.floor(Math.random() * corners.length)];
+                }
+                if (edges.length > 0) {
+                    return edges[Math.floor(Math.random() * edges.length)];
+                }
+                if (center.length > 0) {
+                    return center[Math.floor(Math.random() * center.length)];
+                }
+                return null;
+            }
+
+            getAdvancedMove() {
+                // 高级AI：寻找可以吃子的位置或者好的战略位置
+                const moves = [];
+
+                for (let y = 0; y < this.boardSize; y++) {
+                    for (let x = 0; x < this.boardSize; x++) {
+                        if (this.board[y][x] === 0) {
+                            let score = 0;
+
+                            // 检查是否能吃子
+                            this.board[y][x] = 2; // 临时放置
+                            const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+                            for (let [dx, dy] of directions) {
+                                const nx = x + dx;
+                                const ny = y + dy;
+                                if (this.isValid(nx, ny) && this.board[ny][nx] === 1) {
+                                    if (this.countLiberties(nx, ny) === 0) {
+                                        score += 50; // 能吃子得高分
+                                    }
+                                }
+                            }
+                            this.board[y][x] = 0; // 恢复
+
+                            // 角落加分
+                            if ((x < 3 || x >= this.boardSize - 3) &&
+                                (y < 3 || y >= this.boardSize - 3)) {
+                                score += 10;
+                            }
+
+                            // 边缘加分
+                            if (x < 4 || x >= this.boardSize - 4 ||
+                                y < 4 || y >= this.boardSize - 4) {
+                                score += 5;
+                            }
+
+                            moves.push({x, y, score});
+                        }
+                    }
+                }
+
+                if (moves.length === 0) return null;
+
+                // 选择得分最高的位置
+                moves.sort((a, b) => b.score - a.score);
+                const bestScore = moves[0].score;
+                const bestMoves = moves.filter(m => m.score === bestScore);
+                return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+            }
+
+            showHint() {
+                if (this.mode === 'learning') {
+                    this.showDogMessage('试着把棋子下在角落或者边上，这些位置更有价值！');
+                } else {
+                    if (this.difficulty === 'beginner') {
+                        this.showDogMessage('在9x9的小棋盘上，控制中心很重要！');
+                    } else {
+                        this.showDogMessage('记住"金角银边草肚皮"，角落最有价值！');
+                    }
+                }
+            }
+
+            undo() {
+                if (this.history.length === 0) {
+                    this.showDogMessage('已经没有可以悔棋的步骤了！');
+                    return;
+                }
+
+                const lastState = this.history.pop();
+                this.board = lastState.board;
+                this.currentPlayer = lastState.player;
+                this.capturedStones = lastState.capturedStones;
+                this.moveCount--;
+                this.lastMove = null;
+
+                this.drawBoard();
+                this.updateUI();
+                this.showDogMessage('已经悔棋了！');
+            }
+
+            pass() {
+                this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+                this.updateUI();
+                this.showDogMessage('跳过了这一手！');
+
+                // AI也要下
+                if (this.mode === 'play' && this.currentPlayer === 2) {
+                    setTimeout(() => this.aiMove(), 500);
+                }
+            }
+
+            newGame() {
+                this.board = this.createEmptyBoard();
+                this.history = [];
+                this.currentPlayer = 1;
+                this.moveCount = 0;
+                this.capturedStones = {black: 0, white: 0};
+                this.lastMove = null;
+
+                this.drawBoard();
+                this.updateUI();
+                this.showDogMessage('新游戏开始了！加油哦！');
+            }
+
+            switchMode() {
+                const patternLibrary = document.getElementById('pattern-library');
+                const difficultySelector = document.getElementById('difficulty-selector');
+
+                if (this.mode === 'learning') {
+                    patternLibrary.style.display = 'block';
+                    difficultySelector.style.display = 'none';
+                    document.getElementById('current-mode').textContent = '棋形学习';
+                    this.showDogMessage('在学习模式中，我会教你各种基础棋形！');
+                    this.boardSize = 9;
+                    this.updateCanvasSize();
+                    this.loadPattern(0);
+                } else {
+                    patternLibrary.style.display = 'none';
+                    difficultySelector.style.display = 'flex';
+                    document.getElementById('current-mode').textContent = '对弈模式';
+                    this.switchDifficulty();
+                }
+            }
+
+            switchDifficulty() {
+                if (this.difficulty === 'beginner') {
+                    this.boardSize = 9;
+                    this.showDogMessage('初级模式：9x9棋盘，我会随意下棋，适合练习基础！');
+                } else if (this.difficulty === 'intermediate') {
+                    this.boardSize = 19;
+                    this.showDogMessage('中级模式：19x19标准棋盘，我会使用一些策略哦！');
+                } else {
+                    this.boardSize = 19;
+                    this.showDogMessage('高级模式：19x19标准棋盘，我会认真对弈了！');
+                }
+
+                this.updateCanvasSize();
+                this.newGame();
+            }
+
+            loadPattern(index) {
+                const pattern = PATTERNS[index];
+                this.newGame();
+
+                this.showDogMessage(pattern.description);
+
+                // 加载棋形
+                pattern.moves.forEach(move => {
+                    if (move.x < this.boardSize && move.y < this.boardSize) {
+                        this.board[move.y][move.x] = move.color;
+                    }
+                });
+
+                this.drawBoard();
+
+                // 显示所有棋子的气
+                setTimeout(() => {
+                    this.showAllLiberties();
+                }, 500);
+            }
+
+            showAllLiberties() {
+                for (let y = 0; y < this.boardSize; y++) {
+                    for (let x = 0; x < this.boardSize; x++) {
+                        if (this.board[y][x] !== 0) {
+                            const liberties = this.countLiberties(x, y);
+                            const padding = 30;
+                            const screenX = padding + x * this.cellSize + 20;
+                            const screenY = padding + y * this.cellSize - 30;
+
+                            this.ctx.fillStyle = 'rgba(255, 69, 0, 0.8)';
+                            this.ctx.font = 'bold 14px Arial';
+                            this.ctx.fillText(`${liberties}气`, screenX, screenY);
+                        }
+                    }
+                }
+            }
+
+            drawBoard() {
+                const padding = 30;
+
+                // 清空画布
+                this.ctx.fillStyle = '#DEB887';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // 绘制网格
+                this.ctx.strokeStyle = '#000';
+                this.ctx.lineWidth = 1;
+
+                for (let i = 0; i < this.boardSize; i++) {
+                    // 竖线
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(padding + i * this.cellSize, padding);
+                    this.ctx.lineTo(padding + i * this.cellSize, padding + (this.boardSize - 1) * this.cellSize);
+                    this.ctx.stroke();
+
+                    // 横线
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(padding, padding + i * this.cellSize);
+                    this.ctx.lineTo(padding + (this.boardSize - 1) * this.cellSize, padding + i * this.cellSize);
+                    this.ctx.stroke();
+                }
+
+                // 绘制星位
+                const stars = this.getStarPoints();
+                stars.forEach(([x, y]) => {
+                    this.ctx.beginPath();
+                    this.ctx.arc(padding + x * this.cellSize, padding + y * this.cellSize, 4, 0, Math.PI * 2);
+                    this.ctx.fillStyle = '#000';
+                    this.ctx.fill();
+                });
+
+                // 绘制棋子
+                for (let y = 0; y < this.boardSize; y++) {
+                    for (let x = 0; x < this.boardSize; x++) {
+                        if (this.board[y][x] !== 0) {
+                            this.drawStone(x, y, this.board[y][x]);
+                        }
+                    }
+                }
+
+                // 标记最后一手
+                if (this.lastMove) {
+                    this.ctx.strokeStyle = 'red';
+                    this.ctx.lineWidth = 3;
+                    this.ctx.beginPath();
+                    this.ctx.arc(
+                        padding + this.lastMove.x * this.cellSize,
+                        padding + this.lastMove.y * this.cellSize,
+                        10, 0, Math.PI * 2
+                    );
+                    this.ctx.stroke();
+                }
+            }
+
+            getStarPoints() {
+                if (this.boardSize === 9) {
+                    return [[2, 2], [6, 2], [2, 6], [6, 6], [4, 4]];
+                } else if (this.boardSize === 19) {
+                    return [
+                        [3, 3], [9, 3], [15, 3],
+                        [3, 9], [9, 9], [15, 9],
+                        [3, 15], [9, 15], [15, 15]
+                    ];
+                }
+                return [];
+            }
+
+            drawStone(x, y, color) {
+                const padding = 30;
+                const centerX = padding + x * this.cellSize;
+                const centerY = padding + y * this.cellSize;
+
+                // 阴影
+                this.ctx.beginPath();
+                this.ctx.arc(centerX + 2, centerY + 2, this.stoneRadius, 0, Math.PI * 2);
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                this.ctx.fill();
+
+                // 棋子
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY, this.stoneRadius, 0, Math.PI * 2);
+
+                if (color === 1) {
+                    const gradient = this.ctx.createRadialGradient(
+                        centerX - 5, centerY - 5, 5,
+                        centerX, centerY, this.stoneRadius
+                    );
+                    gradient.addColorStop(0, '#555');
+                    gradient.addColorStop(1, '#000');
+                    this.ctx.fillStyle = gradient;
+                } else {
+                    const gradient = this.ctx.createRadialGradient(
+                        centerX - 5, centerY - 5, 5,
+                        centerX, centerY, this.stoneRadius
+                    );
+                    gradient.addColorStop(0, '#fff');
+                    gradient.addColorStop(1, '#ddd');
+                    this.ctx.fillStyle = gradient;
+                }
+
+                this.ctx.fill();
+                this.ctx.strokeStyle = color === 1 ? '#000' : '#999';
+                this.ctx.lineWidth = 1;
+                this.ctx.stroke();
+            }
+
+            showDogMessage(message) {
+                document.getElementById('dog-message').textContent = message;
+            }
+
+            updateUI() {
+                document.getElementById('move-count').textContent = this.moveCount;
+                document.getElementById('current-player').textContent =
+                    this.currentPlayer === 1 ? '黑方' : '白方';
+                document.getElementById('captured-count').textContent =
+                    `黑${this.capturedStones.black} 白${this.capturedStones.white}`;
+                document.getElementById('board-size').textContent =
+                    `${this.boardSize}x${this.boardSize}`;
+            }
+        }
+
+        // 初始化游戏
+        window.addEventListener('load', () => {
+            const game = new GoGame();
+        });
+    </script>
+</body>
+</html>
